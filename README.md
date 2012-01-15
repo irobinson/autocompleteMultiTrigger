@@ -1,7 +1,8 @@
-autocompleteMultiTrigger (based on autocompleteTrigger, which is based on jQuery-UI Autocomplete)
+autocompleteTrigger (based on jQuery-UI Autocomplete)
 ================================
 
-A version of autocompleteTrigger (https://github.com/experteer/autocompleteTrigger) modified specifically for the use case where you need to support both @ (username lookup) and # (tag lookup) in one input/textarea.
+autocompleteTrigger allows you to specify a trigger (e. g. @ like twitter or facebook) and bind it to a textarea or input text field.
+If a user writes the trigger-sign into the textbox, the autocomplete dialog will displayed and the text after the trigger-sign will be used as search-query for the autocomplete options. If one of the suggested items will be selected, the value and trigger will be added to the textfield.
 
 Requirements
 
@@ -11,11 +12,11 @@ Requirements
 Example
 ---
 ```
-$('input,textarea').autocompleteMultiTrigger({
-  triggerStart:['@','#'],
+$('input').autocompleteTrigger({
+  triggerStart:['@','#'], // array of triggers
   triggerEnd:' ',
-  sources: [ ['sample', 'first', 'source'],['second','test','data','set'] ]
+  sources: [ ['sample', 'first', 'source'],['second','test','data','set'] ] // array of sources, source is matched to the trigger at the same index in the array
 });
 ```
 
-Demo: http://jsfiddle.net/irobinson/m8LB5/
+Demo: http://jsfiddle.net/dmattes/2YRgW/1/
