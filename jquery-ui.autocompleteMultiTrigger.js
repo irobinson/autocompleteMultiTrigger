@@ -49,14 +49,14 @@
 
 ;
 (function($, window, document, undefined) {
-  $.widget("ui.autocompleteTrigger", {
+  $.widget("ui.autocompleteMultiTrigger", {
 
     //Options to be used as defaults
     options:{
-      triggerStart:"%{",
-      triggerEnd:"}"
+      triggerStart:['@','#'],
+      triggerEnd:' ',
+      sources: [ ['sample', 'first', 'source'],['second','test','data','set'] ]
     },
-
 
     _create:function() {
       this.triggered = false;
@@ -67,23 +67,21 @@
           /**
            * @description only make a request and suggest items if acTrigger.triggered is true
            */
-          var acTrigger = $(this).data("autocompleteTrigger");
-
+          var acTrigger = $(this).data("autocompleteMultiTrigger");
           return acTrigger.triggered;
         },
         select:function(event, ui) {
           /**
            * @description if a item is selected, insert the value between triggerStart and triggerEnd
            */
-          acTrigger = $(this).data("autocompleteTrigger");
+          acTrigger = $(this).data("autocompleteMultiTrigger");
 
           var text = this.value;
-          var trigger = acTrigger.options.triggerStart;
+          var trigger = acTrigger.value;
           var cursorPosition = acTrigger.getCursorPosition();
-          var lastTriggerPosition = text.substring(0, cursorPosition).lastIndexOf(trigger);
-          var firstTextPart = text.substring(0, lastTriggerPosition + trigger.length) +
-            ui.item.value +
-            acTrigger.options.triggerEnd;
+          
+          var lastTriggerPosition = text.substring(0, cursorPosition).lastIndexOf(acTrigger.value);
+          var firstTextPart = text.substring(0, lastTriggerPosition + acTrigger.value.length) + ui.item.value + acTrigger.options.triggerEnd;
           this.value = firstTextPart + text.substring(cursorPosition, text.length);
 
           acTrigger.triggered = false;
@@ -109,29 +107,43 @@
            * @description Bind to keyup-events to detect text changes.
            * If the trigger is found before the cursor, autocomplete will be called
            */
-          var acTrigger = $(this).data("autocompleteTrigger");
+          var acTrigger = $(this).data("autocompleteMultiTrigger");
 
-          if (event.keyCode != $.ui.keyCode.UP && event.keyCode != $.ui.keyCode.DOWN) {
-            var text = this.value;
-            var textLength = text.length;
-            var cursorPosition = acTrigger.getCursorPosition();
-            var lastString;
-            var query;
-            var lastTriggerPosition;
-            var trigger = acTrigger.options.triggerStart;
+          if (event.keyCode == $.ui.keyCode.UP || event.keyCode == $.ui.keyCode.DOWN) {
+            return;
+          }
+          
+          if (event.keyCode == $.ui.keyCode.ESCAPE) {
+            acTrigger.triggered = false;
+            return;
+          }
+ 
+          var text = this.value;
+          var textLength = text.length;
+          var cursorPosition = acTrigger.getCursorPosition();
+          var lastString;
+          var query;
+          var lastTriggerPosition;
+          var trigger = acTrigger.options.triggerStart;
+          
+          if (textLength === 0) {
+            acTrigger.triggered = false;
+          }
 
-            if (acTrigger.triggered) {
-              // call autocomplete with the string after the trigger
-              // Example: triggerStart = @, string is '@foo' -> query string is 'foo'
-              lastTriggerPosition = text.substring(0, cursorPosition).lastIndexOf(trigger);
-              query = text.substring(lastTriggerPosition + trigger.length, cursorPosition);
-              $(this).autocomplete("search", query);
-            }
-            else if (textLength >= trigger.length) {
-              // set trigged to true, if the string before the cursor is triggerStart
-              lastString = text.substring(cursorPosition - trigger.length, cursorPosition);
-              acTrigger.triggered = (lastString === trigger);
-            }
+          if (acTrigger.triggered) {
+            lastTriggerPosition = text.substring(0, cursorPosition).lastIndexOf(acTrigger.value);
+            query = text.substring(lastTriggerPosition + acTrigger.value.length, cursorPosition);
+            $(this).autocomplete("search", query);
+          }
+          else if (textLength >= 1) {
+            lastString = text.substring(cursorPosition - 1, cursorPosition);
+            var triggerLocation = $.inArray(lastString, trigger);
+            var isTriggered = (triggerLocation > -1);
+            acTrigger.triggered = isTriggered;
+            acTrigger.index = triggerLocation;
+            acTrigger.value = (isTriggered ? trigger[triggerLocation] : '');
+            var triggerSource = acTrigger.options.sources[acTrigger.index];
+            $(this).autocomplete('option','source', triggerSource);
           }
         });
     },
